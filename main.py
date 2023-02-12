@@ -26,6 +26,7 @@ def huffman_code_tree(node, left=True, binString=''):
     if type(node) is str:
         return {node: binString}
     (l, r) = node.children()
+
     d = dict()
     d.update(huffman_code_tree(l, True, binString + '0'))
     d.update(huffman_code_tree(r, False, binString + '1'))
@@ -42,7 +43,10 @@ for c in string:
 
 freq = sorted(freq.items(), key=lambda x: x[1], reverse=True)
 
+
 nodes = freq
+
+print(freq)
 
 while len(nodes) > 1:
     (key1, c1) = nodes[-1]
@@ -52,6 +56,7 @@ while len(nodes) > 1:
     nodes.append((node, c1 + c2))
 
     nodes = sorted(nodes, key=lambda x: x[1], reverse=True)
+    
 
 huffmanCode = huffman_code_tree(nodes[0][0])
 
