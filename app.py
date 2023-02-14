@@ -21,8 +21,8 @@ class App(customtkinter.CTk):
         font2 = ("Arial", 15)
         font3 = ("Arial", 12)
 
-        self.frame1 = customtkinter.CTkFrame(self, fg_color="#ffffff", width=450, height=500)
-        self.frame1.place(x=350, y=0)
+        self.frame1 = customtkinter.CTkFrame(self, fg_color="#ffffff", width=430, height=480, corner_radius=20)
+        self.frame1.place(x=350, y=25)
 
         self.label = customtkinter.CTkLabel(self, text="Add The String you want to Code :", font=font1, fg_color="#17043d")
         self.label.place(x=20, y=20)
@@ -36,18 +36,39 @@ class App(customtkinter.CTk):
         self.clear_button = customtkinter.CTkButton(self, text="Clear",font=font1, fg_color="#b86512", hover_color="#b86512", width=120, corner_radius=20, text_color="#ffffff", command = self.clear)
         self.clear_button.place(x=200, y=330)
 
+        self.beforeCompression = customtkinter.CTkLabel(self, text="Before Compression : ", font=font1, fg_color="#17043d")
+        self.beforeCompression.place(x=20, y=400)
 
-        self.percentage_label = customtkinter.CTkLabel(self, text="Compresed precentage :", font=font1, fg_color="#17043d")
-        self.percentage_label.place(x=20, y=370)
+        self.afterCompression = customtkinter.CTkLabel(self, text="After Compression : ", font=font1, fg_color="#17043d")
+        self.afterCompression.place(x=20, y=430)
 
-        self.percentage_value_label = customtkinter.CTkLabel(self, text="50%", font=font1, fg_color="#17043d")
-        self.percentage_value_label.place(x=20, y=400)
+        self.compressionPercentage = customtkinter.CTkLabel(self, text="Compression percentage : ", font=font1, fg_color="#17043d")
+        self.compressionPercentage.place(x=20, y=460)
 
+        style = ttk.Style()
+        style.configure("mystyle.Treeview", font=font3, rowheight=50)
+        style.configure("mystyle.Treeview.Heading", font=font3, background="white")
+        style.layout("mystyle.Treeview", [('mystyle.Treeview.treearea', {'sticky': 'nswe'})])
+
+        tv = ttk.Treeview(self.frame1, columns=(1,2,3), show="headings", style="mystyle.Treeview")
+        tv.heading("1", text="Symbol")
+        tv.column("1", width=150)
+
+        tv.heading("2", text="Freq")
+        tv.column("2", width=150)
+
+        tv.heading("3", text="Coding")
+        tv.column("3", width=150)
+        
+        
+
+        tv.pack()
 
     def clear(self):
-            self.text_box.delete("0.0", "end")
-            # change value of percentage
-            self.percentage_value_label.configure(text="00%")
+        self.text_box.delete("0.0", "end")
+        self.beforeCompression.configure(text="Before Compression : ")
+        self.afterCompression.configure(text="After Compression : ")   
+        self.compressionPercentage.configure(text="Compression percentage : ")   
 
     def code(self):
             # print('its working')
@@ -73,7 +94,7 @@ class App(customtkinter.CTk):
                     freq[c] += 1
                 else:
                     freq[c] = 1
-
+            dicFreq = freq
             freq = sorted(freq.items(), key=lambda x: x[1], reverse=True)
 
 
@@ -90,13 +111,36 @@ class App(customtkinter.CTk):
                 
 
             huffmanCode = huffman_code_tree(nodes[0][0])
+            print(huffmanCode)
 
             print(' Char | Huffman code ')
             print('----------------------')
             for (char, frequency) in freq:
                 print(' %-4r |%12s' % (char, huffmanCode[char]))
 
+            
+            # calculate bits & percentages
 
+            beforeCompressionValue = (len(self.text_box.get("0.0", "end")) - 1) * 8
+            afterCompressionValue = 0  
+            the_symbols = huffmanCode.keys()  
+
+            for symbol in the_symbols:  
+                the_count = string.count(symbol)  
+                # calculating how many bit is required for that symbol in total  
+                afterCompressionValue += the_count * len(huffmanCode[symbol])
+
+            percentage = (afterCompressionValue * 100) / beforeCompressionValue
+
+            self.beforeCompression.configure(text=f"Before Compression : {beforeCompressionValue} bits")
+            self.afterCompression.configure(text=f"After Compression : {afterCompressionValue} bits")
+            self.compressionPercentage.configure(text=f"Compression percentage : {round(percentage, 2)}%")
+
+            # insert value into the table 
+            # self.tv.delete(*self.tv.get_children())
+            # for str in huffmanCode:
+            # self.tv.insert("", "end", values=("hey", "hh", 12))
+            # self.tv.insert("", "end", values=("hey", "hh", 12))
 
 if __name__=="__main__":
     app = App()
