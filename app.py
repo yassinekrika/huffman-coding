@@ -2,15 +2,15 @@ import customtkinter
 from tkinter import messagebox
 from tkinter import *
 from tkinter import ttk
+from tkinter import messagebox
 from NodeTree import NodeTree
-# create the ui
 
 
 class App(customtkinter.CTk):
     
     def __init__(self):
         super().__init__()
-
+        # create the ui
         self.title("Huffman Coding")
         self.geometry("800x500")
         self.maxsize(800, 500)
@@ -45,102 +45,99 @@ class App(customtkinter.CTk):
         self.compressionPercentage = customtkinter.CTkLabel(self, text="Compression percentage : ", font=font1, fg_color="#17043d")
         self.compressionPercentage.place(x=20, y=460)
 
+        
+
         style = ttk.Style()
         style.configure("mystyle.Treeview", font=font3, rowheight=50)
         style.configure("mystyle.Treeview.Heading", font=font3, background="white")
         style.layout("mystyle.Treeview", [('mystyle.Treeview.treearea', {'sticky': 'nswe'})])
 
-        tv = ttk.Treeview(self.frame1, columns=(1,2,3), show="headings", style="mystyle.Treeview")
-        tv.heading("1", text="Symbol")
-        tv.column("1", width=150)
+        self.tv = ttk.Treeview(self.frame1, columns=(1,2,3), show="headings", style="mystyle.Treeview")
 
-        tv.heading("2", text="Freq")
-        tv.column("2", width=150)
+        self.tv.heading("1", text="Symbol")
+        self.tv.column("1", width=150)
 
-        tv.heading("3", text="Coding")
-        tv.column("3", width=150)
-        
-        
+        self.tv.heading("2", text="Freq")
+        self.tv.column("2", width=150)
 
-        tv.pack()
+        self.tv.heading("3", text="Coding")
+        self.tv.column("3", width=150)
+
+        self.tv.pack()
 
     def clear(self):
         self.text_box.delete("0.0", "end")
         self.beforeCompression.configure(text="Before Compression : ")
         self.afterCompression.configure(text="After Compression : ")   
         self.compressionPercentage.configure(text="Compression percentage : ")   
+        self.tv.delete(*self.tv.get_children())
 
     def code(self):
-            # print('its working')
-
-            # string = 'BCAADDDCCACACACCC'
-            string = self.text_box.get("0.0", "end")
-
-            # Main function implementing huffman coding
-            def huffman_code_tree(node, left=True, binString=''):
-                if type(node) is str:
-                    return {node: binString}
-                (l, r) = node.children()
-                d = dict()
-                d.update(huffman_code_tree(l, True, binString + '0'))
-                d.update(huffman_code_tree(r, False, binString + '1'))
-                return d
-
-
-            # Calculating frequency
-            freq = {}
-            for c in string:
-                if c in freq:
-                    freq[c] += 1
-                else:
-                    freq[c] = 1
-            dicFreq = freq
-            freq = sorted(freq.items(), key=lambda x: x[1], reverse=True)
-
-
-            nodes = freq
-
-            while len(nodes) > 1:
-                (key1, c1) = nodes[-1]
-                (key2, c2) = nodes[-2]
-                nodes = nodes[:-2]
-                node = NodeTree(key1, key2)
-                nodes.append((node, c1 + c2))
-
-                nodes = sorted(nodes, key=lambda x: x[1], reverse=True)
-                
-
-            huffmanCode = huffman_code_tree(nodes[0][0])
-            print(huffmanCode)
-
-            print(' Char | Huffman code ')
-            print('----------------------')
-            for (char, frequency) in freq:
-                print(' %-4r |%12s' % (char, huffmanCode[char]))
-
             
-            # calculate bits & percentages
+            string = self.text_box.get("0.0", "end")
+            
+            if string == '\n' or string == "": 
+                messagebox.showinfo("Error", "Please enter something") 
+            
+            else:
+                # Main function implementing huffman coding
+                def huffman_code_tree(node):
+                    codes = {}
 
-            beforeCompressionValue = (len(self.text_box.get("0.0", "end")) - 1) * 8
-            afterCompressionValue = 0  
-            the_symbols = huffmanCode.keys()  
+                    def traverse(node, code):
+                        if type(node) is str:
+                            codes[node] = code
+                        else:
+                            traverse(node.left, code + '0')
+                            traverse(node.right, code + '1')
 
-            for symbol in the_symbols:  
-                the_count = string.count(symbol)  
-                # calculating how many bit is required for that symbol in total  
-                afterCompressionValue += the_count * len(huffmanCode[symbol])
+                    traverse(node, '')
+                    return codes
 
-            percentage = (afterCompressionValue * 100) / beforeCompressionValue
 
-            self.beforeCompression.configure(text=f"Before Compression : {beforeCompressionValue} bits")
-            self.afterCompression.configure(text=f"After Compression : {afterCompressionValue} bits")
-            self.compressionPercentage.configure(text=f"Compression percentage : {round(percentage, 2)}%")
 
-            # insert value into the table 
-            # self.tv.delete(*self.tv.get_children())
-            # for str in huffmanCode:
-            # self.tv.insert("", "end", values=("hey", "hh", 12))
-            # self.tv.insert("", "end", values=("hey", "hh", 12))
+                # Calculating frequency
+                freq = {}
+                for c in string:
+                    if c in freq:
+                        freq[c] += 1
+                    else:
+                        freq[c] = 1
+                
+                freq = sorted(freq.items(), key=lambda x: x[1], reverse=True)
+
+                nodes = freq
+
+                while len(nodes) > 1:
+                    (key1, c1) = nodes[-1]
+                    (key2, c2) = nodes[-2]
+                    nodes = nodes[:-2]
+                    node = NodeTree(key1, key2)
+                    nodes.append((node, c1 + c2))
+
+                    nodes = sorted(nodes, key=lambda x: x[1], reverse=True)
+                    
+                huffmanCode = huffman_code_tree(nodes[0][0])
+                
+                # calculate bits & percentages
+                beforeCompressionValue = (len(self.text_box.get("0.0", "end")) - 1) * 8
+                afterCompressionValue = 0  
+                the_symbols = huffmanCode.keys()  
+
+                for symbol in the_symbols:  
+                    the_count = string.count(symbol)   
+                    afterCompressionValue += the_count * len(huffmanCode[symbol])
+
+                percentage = (afterCompressionValue * 100) / beforeCompressionValue
+                
+                # showing percentage to ui
+                self.beforeCompression.configure(text=f"Before Compression : {beforeCompressionValue} bits")
+                self.afterCompression.configure(text=f"After Compression : {afterCompressionValue} bits")
+                self.compressionPercentage.configure(text=f"Compression percentage : {round(percentage, 2)}%")
+
+                for (char, frequency) in freq:
+                    if char != '\n':
+                        self.tv.insert("", "end", values=(char, frequency, huffmanCode[char]))
 
 if __name__=="__main__":
     app = App()
